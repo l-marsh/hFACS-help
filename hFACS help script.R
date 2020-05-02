@@ -1,13 +1,37 @@
 library(beeswarm) #beeswarm is used to draw data points onto of graphs
 library(pheatmap)
-library(ggplot2)
-library(dplyr)
+library(tidyverse)
 library(openxlsx)
 library(ggpubr)
 library(RColorBrewer)
 library(cowplot)
 require("ggrepel")
 library(reshape2)
+library(readxl)
+
+#Nice Pallettes
+cpallette=c("#64B2CE", "#DA5724", "#74D944", "#CE50CA", "#C0717C", "#CBD588", "#5F7FC7",
+            "#673770", "#D3D93E", "#8569D5", "#508578", "#D7C1B1", "#689030", "#AD6F3B", "#CD9BCD",
+            "#D14285", "#6DDE88", "#652926", "#7FDCC0", "#C84248", "#8569D5", "#5E738F", "#D1A33D",
+            "#8A7C64", "#599861")
+
+col.pal3 <-   scale_fill_manual(values=c("Donor" = "#64B2CE", 
+                                         "COPD" = "#DA5724",
+                                         "IPAH" = "#673770",
+                                         "Fibrosis" = "#74D944"))
+
+
+#Nice plot settings for width = 4, height = 4 plots
+theme_set(theme_bw(base_size=16))
+
+axis <- theme(axis.line.x = element_line(color="black", size = 0.5), axis.line.y = element_line(color="black", size = 0.5))+
+  theme(plot.title = element_text(size = rel(1),colour="black"))+
+  theme(plot.title = element_text(hjust = 0.5))+
+  theme(axis.title.x = element_text(size = rel(0.6), hjust = 1))+
+  theme(axis.title.y =element_text(margin=margin(0,10,0,0)))+
+  theme(axis.text = element_text(colour="black"))+
+  theme(panel.grid = element_blank())+
+  theme(plot.caption = element_text(size = rel(0.6)))
 
 
 #shapiro function
@@ -40,9 +64,39 @@ histo <- function(x) {
     theme(legend.position = c(0.9, 0.25))
 }
 
+#plot facet histograms v2
+histo2 <- function(x) {
+  nm <- deparse(substitute(x))#extacts the name of the df
+  
+  ggplot(x, aes(value, fill=Diagnosis))+
+    geom_histogram(alpha=0.6)+
+    axis+
+    labs(title = nm)+
+    facet_wrap(~variable, scales = "free", ncol = 4)+
+    theme(legend.position = c(0.9, 0.05))
+}
+
+
+#gplot function
+myPlot <- function(index) {
+  ggplot(x, aes_string(x = "Diagnosis", y = index))+
+    geom_boxplot(varwidth = TRUE, notch = FALSE, color="white", aes(fill=Diagnosis), alpha=0.4) + 
+    geom_dotplot(aes(fill=Diagnosis), dotsize = 0.75, binaxis="y", stackdir="center") +
+    labs(x = "", y = "% cells", title = index)+
+    col.pal3+
+    axis+
+    theme(axis.text.x = element_text(angle=90))+
+    theme(legend.position="none")+
+    facet_wrap(~Tissue, ncol = 4)+
+    stat_compare_means(comparisons = my_comparisons, hide.ns = T, label = "p.signif")
+  
+  ggsave(filename=paste("Plots/TVcompare_",index,".png",sep=""), last_plot(),dpi = 300, width = 6, height = 4)
+}
+
+
 #PCA function to faciliate analysis
 PCA <- function(p) {
-  df <- prcomp(p[,10:ncol(p)], scale = T, center = T) #cd45 data excluded to concentration on sub populations
+  df <<- prcomp(p[,10:ncol(p)], scale = T, center = T) #cd45 data excluded to concentration on sub populations
   pcVar <- summary(df)
   plot (df)
   biplot(df, scale = 0)
@@ -54,7 +108,7 @@ PCA <- function(p) {
   #print(names(p))
   nm <- deparse(substitute(p))#extacts the name of the df
 
-  PC<-data.frame(df$x, Disease=data1.sqrt$Disease)
+  PC<<-data.frame(df$x, Disease=data1.sqrt$Disease)
   ggplot(PC,aes(x=PC1,y=PC2,col=Disease))+
     geom_point(size=4,alpha=1)+
     labs(x = paste0("PC1 (", varPC1*100, "%)"), y = paste0("PC2 (", varPC2*100, "%)"), title = nm)
