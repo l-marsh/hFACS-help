@@ -8,6 +8,8 @@ library(cowplot)
 require("ggrepel")
 library(reshape2)
 library(readxl)
+library(tidyr)
+
 
 #Nice Pallettes
 cpallette=c("#64B2CE", "#DA5724", "#74D944", "#CE50CA", "#C0717C", "#CBD588", "#5F7FC7",
@@ -15,10 +17,13 @@ cpallette=c("#64B2CE", "#DA5724", "#74D944", "#CE50CA", "#C0717C", "#CBD588", "#
             "#D14285", "#6DDE88", "#652926", "#7FDCC0", "#C84248", "#8569D5", "#5E738F", "#D1A33D",
             "#8A7C64", "#599861")
 
-col.pal3 <-   scale_fill_manual(values=c("Donor" = "#64B2CE", 
+col.pal3 <-   scale_fill_manual(values=c("Donor" = "#64B2CE",
                                          "COPD" = "#DA5724",
                                          "IPAH" = "#673770",
                                          "Fibrosis" = "#74D944"))
+
+#color_palette for heatmaps
+color_palette <- c(rev(colorRampPalette(brewer.pal(9, "Blues"))(48)), "#ffffff", "#ffffff" , colorRampPalette(brewer.pal(9, "Reds"))(48))
 
 
 #Nice plot settings for width = 4, height = 4 plots
@@ -67,7 +72,7 @@ histo <- function(x) {
 #plot facet histograms v2
 histo2 <- function(x) {
   nm <- deparse(substitute(x))#extacts the name of the df
-  
+
   ggplot(x, aes(value, fill=Diagnosis))+
     geom_histogram(alpha=0.6)+
     axis+
@@ -80,7 +85,7 @@ histo2 <- function(x) {
 #gplot function
 myPlot <- function(index) {
   ggplot(x, aes_string(x = "Diagnosis", y = index))+
-    geom_boxplot(varwidth = TRUE, notch = FALSE, color="white", aes(fill=Diagnosis), alpha=0.4) + 
+    geom_boxplot(varwidth = TRUE, notch = FALSE, color="white", aes(fill=Diagnosis), alpha=0.4) +
     geom_dotplot(aes(fill=Diagnosis), dotsize = 0.75, binaxis="y", stackdir="center") +
     labs(x = "", y = "% cells", title = index)+
     col.pal3+
@@ -89,7 +94,7 @@ myPlot <- function(index) {
     theme(legend.position="none")+
     facet_wrap(~Tissue, ncol = 4)+
     stat_compare_means(comparisons = my_comparisons, hide.ns = T, label = "p.signif")
-  
+
   ggsave(filename=paste("Plots/TVcompare_",index,".png",sep=""), last_plot(),dpi = 300, width = 6, height = 4)
 }
 
