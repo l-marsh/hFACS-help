@@ -25,6 +25,12 @@ col.pal3 <-   scale_fill_manual(values=c("Donor" = "#64B2CE",
 #color_palette for heatmaps
 color_palette <- c(rev(colorRampPalette(brewer.pal(9, "Blues"))(48)), "#ffffff", "#ffffff" , colorRampPalette(brewer.pal(9, "Reds"))(48))
 
+#some helpful filtering text
+
+i <- which(data1.Alllung$Diagnosis == "Donor")
+i <- c(which(data1.Alllung$Diagnosis == "Donor"), which(data1.Alllung$Diagnosis == "COPD"), which(data1.Alllung$Diagnosis == "Fibrosis"))
+#can be used for heatmap subsetting e.g.
+#pheatmap(t(data1.Alllung[i,4:ncol(data1.Alllung)]))
 
 #Nice plot settings for width = 4, height = 4 plots
 theme_set(theme_bw(base_size=16))
@@ -101,7 +107,7 @@ myPlot <- function(index) {
 
 #PCA function to faciliate analysis
 PCA <- function(p) {
-  df <<- prcomp(p[,10:ncol(p)], scale = T, center = T) #cd45 data excluded to concentration on sub populations
+  df <<- prcomp(p[,4:ncol(p)], scale = T, center = T) #cd45 data excluded to concentration on sub populations
   pcVar <- summary(df)
   plot (df)
   biplot(df, scale = 0)
@@ -113,10 +119,12 @@ PCA <- function(p) {
   #print(names(p))
   nm <- deparse(substitute(p))#extacts the name of the df
 
-  PC<<-data.frame(df$x, Disease=data1.sqrt$Disease)
-  ggplot(PC,aes(x=PC1,y=PC2,col=Disease))+
+  PC<<-data.frame(df$x, Lung.Matchcode= p$Lung.Matchcode, Diagnosis=p$Diagnosis)
+  p1 <<- ggplot(PC,aes(x=PC1,y=PC2,col=Diagnosis))+
     geom_point(size=4,alpha=1)+
-    labs(x = paste0("PC1 (", varPC1*100, "%)"), y = paste0("PC2 (", varPC2*100, "%)"), title = nm)
-
-  ggsave(filename=paste(plotdir,"/", nm,"_1.png",sep=""), last_plot(),dpi = 300, width = 6, height = 5)
+    manual.col+
+    labs(x = paste0("PC1 (", varPC1*100, "%)"), y = paste0("PC2 (", varPC2*100, "%)"), title = nm)+
+    theme(legend.position = "bottom")
+plot(p1)
+  #ggsave(filename=paste(plotdir,"/", nm,"_1.png",sep=""), last_plot(),dpi = 300, width = 6, height = 5)
 }
