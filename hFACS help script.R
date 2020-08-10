@@ -111,7 +111,7 @@ PCA <- function(p) {
   pcVar <- summary(df)
   plot (df)
   biplot(df, scale = 0)
-  rota <- df$rotation
+  rota <<- df$rotation
   varPC1 <- round(pcVar$importance[2,1], digits = 2)
   varPC2 <- round(pcVar$importance[2,2], digits = 2)
   varPC3 <- round(pcVar$importance[2,3], digits = 2)
