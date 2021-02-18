@@ -27,8 +27,9 @@ color_palette <- c(rev(colorRampPalette(brewer.pal(9, "Blues"))(48)), "#ffffff",
 
 #some helpful filtering text
 
-i <- which(data1.Alllung$Diagnosis == "Donor")
-i <- c(which(data1.Alllung$Diagnosis == "Donor"), which(data1.Alllung$Diagnosis == "COPD"), which(data1.Alllung$Diagnosis == "Fibrosis"))
+#i <- which(data1.Alllung$Diagnosis == "Donor")
+#i <- c(which(data1.Alllung$Diagnosis == "Donor"), which(data1.Alllung$Diagnosis == "COPD"), which(data1.Alllung$Diagnosis == "Fibrosis"))
+
 #can be used for heatmap subsetting e.g.
 #pheatmap(t(data1.Alllung[i,4:ncol(data1.Alllung)]))
 
