@@ -123,9 +123,94 @@ PCA <- function(p) {
   PC<<-data.frame(df$x, Lung.Matchcode= p$Lung.Matchcode, Diagnosis=p$Diagnosis)
   p1 <<- ggplot(PC,aes(x=PC1,y=PC2,col=Diagnosis))+
     geom_point(size=4,alpha=1)+
-    manual.col+
+    man.col+
     labs(x = paste0("PC1 (", varPC1*100, "%)"), y = paste0("PC2 (", varPC2*100, "%)"), title = nm)+
     theme(legend.position = "bottom")
 plot(p1)
   #ggsave(filename=paste(plotdir,"/", nm,"_1.png",sep=""), last_plot(),dpi = 300, width = 6, height = 5)
 }
+
+
+
+
+# Ran plots -----------
+#My plot function
+myplot <- function(df, index) {
+  print(
+    ggplot(df, aes_string(x = "Diagnosis", y = index, fill = "Diagnosis"))+
+      geom_violin(color="white", alpha=0.2, lwd= 1)+
+      geom_dotplot(dotsize = 1.3, binaxis="y", stackdir="center") +
+      stat_summary(fun = median, fun.min = median, fun.max = median,
+                   geom = "crossbar", width = 0.5)+
+      labs(x = "",
+           y = expression(Units),
+           title = index)+
+      stat_compare_means(hide.ns = T)+ 
+      man.fill+
+      man.col+
+      axis+
+      theme(legend.position="none")+
+      theme(plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm"))
+  )
+}
+
+#plot functions
+scatter_fun = function(x, y) {
+  ggplot(df, aes(x = .data[[x]], y = .data[[y]]) ) +
+    geom_point(aes(color = Diagnosis)) +
+    #col.col+
+    geom_smooth(method = "lm", se = TRUE, color = "grey74") +
+    theme_bw() +
+    labs(x = x,
+         y = y)+
+    scale_x_log10()+ #needed for x conc
+    scale_y_log10()+ #needed for y conc
+    stat_cor(method = "spearman")+
+    theme(legend.position = "none")
+}
+
+#ggplot corrplot
+corr.gg = function (df, i) {
+  df1 <- expand.grid(colnames(df)[i:ncol(df)], colnames(df)[i:ncol(df)])
+  x <- df1$Var1 == df1$Var2
+  df1 <- df1[!x,]
+  df1$rho <- apply(df1, 1, function(v) cor.test(df[[ v[1] ]], df[[ v[2] ]], method = c("spearman"))$estimate)
+  df1$p.value <- apply(df1, 1, function(v) cor.test(df[[ v[1] ]], df[[ v[2] ]], method = c("spearman"))$p.value)
+  df1$p.value <- round(df1$p.value, 4)
+  
+  
+  p <- ggplot(df1, aes(rho, -log(p.value))) + geom_point() +
+    geom_label_repel(data = df1[df1$p.value <= 0.01,], aes(rho, -log(p.value), label = paste0(Var1, "_", Var2)))
+  
+  plot(p)
+  
+  df3 <- df1[df1$p.value <= 0.01,] 
+  nrow(df3)
+  hsize <<- ceiling(nrow(df3)/5)*3
+  
+  
+  index1 <- as.character(df3$Var1)
+  index2 <- as.character(df3$Var2)
+  
+  plot.list.all <- list()
+  for(i in 1:length(index1)){
+    plot.list.all[[i]] <- scatter_fun(index1[i], index2[i])
+  }
+  plot.list.all  <<- plot.list.all 
+  cowplot::plot_grid(plotlist = plot.list.all, ncol = 5)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
